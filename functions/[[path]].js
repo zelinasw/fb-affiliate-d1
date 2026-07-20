@@ -1,24 +1,31 @@
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
+  
+  // Mengambil text slug dari URL (contoh: '/viral-terbaru' menjadi 'viral-terbaru')
+  const slug = url.pathname.replace(/^\/|\/$/g, '');
 
-  // Jalankan query ke D1 untuk mengambil postingan terbaru
-  const { results } = await env.DB.prepare(
-    "SELECT * FROM postingan ORDER BY id DESC LIMIT 1"
-  ).all();
-
-  if (!results || results.length === 0) {
-    return new Response("Belum ada data iklan. Isi dulu di /admin.html", { status: 200 });
+  // Jika mengakses root/domain utama tanpa path, atau mengakses admin.html, biarkan lewat ke file statis
+  if (slug === "" || slug === "admin.html" || slug.startsWith("api/")) {
+    return context.next();
   }
 
-  const data = results[0];
+  // Cari data di D1 yang slug-nya cocok dengan URL
+  const data = await env.DB.prepare(
+    "SELECT * FROM postingan WHERE slug = ? LIMIT 1"
+  ).bind(slug).first();
+
+  // Jika slug tidak ditemukan di database
+  if (!data) {
+    return new Response("Halaman berita tidak ditemukan atau telah kedaluwarsa.", { status: 404 });
+  }
 
   // Deteksi robot/crawler Facebook
   const userAgent = request.headers.get("user-agent") || "";
   const isFacebookBot = userAgent.includes("facebookexternalhit") || userAgent.includes("Facebot");
 
   if (isFacebookBot) {
-    // Kirim HTML palsu berisi Open Graph khusus untuk Facebook preview
+    // Kirim HTML Open Graph sesuai data slug tersebut
     const html = `
       <!DOCTYPE html>
       <html>
@@ -40,6 +47,6 @@ export async function onRequest(context) {
     });
   }
 
-  // Jika diklik oleh manusia asli, lempar langsung ke link Shopee
+  // Jika diklik manusia asli, alihkan langsung ke link Shopee-nya
   return Response.redirect(data.shopee_link, 302);
 }
