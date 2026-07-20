@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Trik Affiliate D1</title>
+    <title>Admin - Trik Affiliate D1 (Multi Link)</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
         .form-group { margin-bottom: 15px; }
@@ -11,12 +11,19 @@
         input[type="text"], input[type="url"] { width: 100%; padding: 8px; box-sizing: border-box; }
         button { background: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
         button:hover { background: #218838; }
+        .result-box { margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 5px; display: none; }
+        .result-box input { background: #fff; font-weight: bold; color: #28a745; }
     </style>
 </head>
 <body>
 
     <h2>Update Konten Berita Affiliate (D1)</h2>
     
+    <div class="form-group">
+        <label>Custom Path / Slug (Contoh: viral-terbaru)</label>
+        <input type="text" id="slug" placeholder="JANGAN pakai spasi, gunakan tanda hubung (-)">
+    </div>
+
     <div class="form-group">
         <label>Judul Berita (Clickbait)</label>
         <input type="text" id="title" placeholder="Contoh: Netizen Curiga Ada Kabar Besar dari Jule...">
@@ -32,15 +39,22 @@
         <input type="url" id="image_url" placeholder="https://domain.com/gambar-berita.jpg">
     </div>
 
-    <button onclick="simpanData()">Update Konten</button>
+    <button onclick="simpanData()">Generate Link Iklan</button>
+
+    <div class="result-box" id="resultBox">
+        <label>🎉 Link Hasil Siap Share ke FB:</label>
+        <input type="text" id="generatedLink" readonly onclick="this.select()">
+        <small style="color: #666; display:block; margin-top:5px;">Klik kolom di atas untuk menyalin link</small>
+    </div>
 
     <script>
         async function simpanData() {
+            const slug = document.getElementById('slug').value.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-');
             const title = document.getElementById('title').value;
             const shopee_link = document.getElementById('shopee_link').value;
             const image_url = document.getElementById('image_url').value;
 
-            if(!title || !shopee_link || !image_url) {
+            if(!slug || !title || !shopee_link || !image_url) {
                 alert("Semua kolom wajib diisi!");
                 return;
             }
@@ -48,16 +62,21 @@
             const response = await fetch('/api/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, shopee_link, image_url })
+                body: JSON.stringify({ slug, title, shopee_link, image_url })
             });
 
             if (response.ok) {
-                alert("Berhasil diperbarui! Silakan test link-mu.");
-                document.getElementById('title').value = '';
-                document.getElementById('shopee_link').value = '';
-                document.getElementById('image_url').value = '';
+                alert("Berhasil disimpan!");
+                
+                // Tampilkan hasil link jadi otomatis
+                const currentDomain = window.location.origin;
+                const fullLink = `${currentDomain}/${slug}`;
+                
+                document.getElementById('generatedLink').value = fullLink;
+                document.getElementById('resultBox').style.display = 'block';
             } else {
-                alert("Gagal memperbarui database.");
+                const errText = await response.text();
+                alert("Gagal memperbarui database: " + errText);
             }
         }
     </script>
