@@ -2,13 +2,21 @@ export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
   
-  // Mengambil text slug dari URL (contoh: '/viral-terbaru' menjadi 'viral-terbaru')
-  const slug = url.pathname.replace(/^\/|\/$/g, '');
+  // Ambil path setelah domain utama
+  const pathname = url.pathname;
 
-  // Jika mengakses root/domain utama tanpa path, atau mengakses admin.html, biarkan lewat ke file statis
-  if (slug === "" || slug === "admin.html" || slug.startsWith("api/")) {
+  // JIKA mengakses halaman admin atau API, langsung teruskan ke file asli (jangan di-redirect)
+  if (
+    pathname === "/admin.html" || 
+    pathname === "/admin" || 
+    pathname.startsWith("/api/") || 
+    pathname === "/"
+  ) {
     return context.next();
   }
+
+  // Bersihkan text slug untuk pencarian di database D1
+  const slug = pathname.replace(/^\/|\/$/g, '');
 
   // Cari data di D1 yang slug-nya cocok dengan URL
   const data = await env.DB.prepare(
