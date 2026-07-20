@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Trik Affiliate D1</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="url"] { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+
+    <h2>Update Konten Berita Affiliate (D1)</h2>
+    
+    <div class="form-group">
+        <label>Judul Berita (Clickbait)</label>
+        <input type="text" id="title" placeholder="Contoh: Netizen Curiga Ada Kabar Besar dari Jule...">
+    </div>
+
+    <div class="form-group">
+        <label>Link Tujuan (Shopee Affiliate)</label>
+        <input type="url" id="shopee_link" placeholder="https://shope.ee/xxxxx">
+    </div>
+
+    <div class="form-group">
+        <label>Link Gambar Berita</label>
+        <input type="url" id="image_url" placeholder="https://domain.com/gambar-berita.jpg">
+    </div>
+
+    <button onclick="simpanData()">Update Konten</button>
+
+    <script>
+        async function simpanData() {
+            const title = document.getElementById('title').value;
+            const shopee_link = document.getElementById('shopee_link').value;
+            const image_url = document.getElementById('image_url').value;
+
+            if(!title || !shopee_link || !image_url) {
+                alert("Semua kolom wajib diisi!");
+                return;
+            }
+
+            const response = await fetch('/api/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, shopee_link, image_url })
+            });
+
+            if (response.ok) {
+                alert("Berhasil diperbarui! Silakan test link-mu.");
+                document.getElementById('title').value = '';
+                document.getElementById('shopee_link').value = '';
+                document.getElementById('image_url').value = '';
+            } else {
+                alert("Gagal memperbarui database.");
+            }
+        }
+    </script>
+</body>
+</html>
